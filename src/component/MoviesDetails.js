@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import Loader from "./Loader";
 import StartRating from "../StartRating";
-
 const key = "f18cbd90";
 
 export default function MoviesDetails({
@@ -61,6 +60,14 @@ export default function MoviesDetails({
     },
     [selectedId]
   );
+
+  useEffect(() => {
+    document.title = `Movie | ${title}`;
+
+    return function () {
+      document.title = { title };
+    };
+  }, [title]);
 
   return (
     <div className="details">
