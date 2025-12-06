@@ -1,6 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Loader from "./Loader";
 import StartRating from "../StartRating";
+import useKey from "../useKey";
+
 const key = "f18cbd90";
 
 export default function MoviesDetails({
@@ -12,6 +14,15 @@ export default function MoviesDetails({
   const [movie, setMovie] = useState({});
   const [isLoading, setIsLoading] = useState(false);
   const [userRating, setUserRating] = useState("");
+
+  const countRef = useRef(0);
+
+  useEffect(
+    function () {
+      if (userRating) countRef.current++;
+    },
+    [userRating]
+  );
 
   const IsWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
   const watchedMovieRating = watched.find(
@@ -31,6 +42,11 @@ export default function MoviesDetails({
     Genre: genre,
   } = movie;
 
+  const isTop = imdbRating > 8;
+  console.log(isTop);
+
+  // const [avgRating, setAvgRaring] = useState(0);
+
   function handleAdd() {
     const newWatchedMovie = {
       imdbID: selectedId,
@@ -38,11 +54,14 @@ export default function MoviesDetails({
       year,
       poster,
       imdbRating: Number(imdbRating),
-      runtime: Number(runtime.split(" ").at(0)),
+      runtime: Number(runtime.split("").at(0)),
       userRating,
+      countRatingDecisions: countRef.current,
     };
     onAddWatched(newWatchedMovie);
     onClickClose();
+    // setAvgRaring(Number(imdbRating));
+    // setAvgRaring((avgRating) => (avgRating + userRating) / 2);
   }
 
   useEffect(
@@ -62,12 +81,15 @@ export default function MoviesDetails({
   );
 
   useEffect(() => {
+    if (!title) return;
     document.title = `Movie | ${title}`;
 
     return function () {
-      document.title = { title };
+      document.title = "usePopcorn";
     };
   }, [title]);
+
+  useKey("Escape", onClickClose);
 
   return (
     <div className="details">
@@ -93,6 +115,7 @@ export default function MoviesDetails({
               </p>
             </div>
           </header>
+          {/* <p> {avgRating}</p> */}
           <section>
             <div className="rating">
               {!IsWatched ? (

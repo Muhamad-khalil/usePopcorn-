@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+// component
 import Navbar from "./component/Navbar";
 import Logo from "./component/Logo";
 import Search from "./component/Search";
@@ -12,68 +13,21 @@ import MoviesDetails from "./component/MoviesDetails";
 import WatchSummary from "./component/WatchSummary";
 import WatchedMoviesList from "./component/WatchedMoviesList";
 
-const key = "f18cbd90";
+import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./useLocalStorageState";
 
 export default function App() {
   const [query, setQuery] = useState("");
-  const [movies, setMovies] = useState([]);
-  const [watched, setWatched] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
-  const [error, setError] = useState("");
+  const { movies, isLoading, error } = useMovies(query);
+  const [watched, setWatched] = useLocalStorageState([], "watched");
 
-  useEffect(
-    function () {
-      const controller = new AbortController();
-
-      async function fitchMovies() {
-        try {
-          setIsLoading(true);
-          setError("");
-
-          const res = await fetch(
-            `http://www.omdbapi.com/?apikey=${key}&s=${query}`,
-            { signal: controller.signal }
-          );
-
-          if (!res.ok)
-            throw new Error("something went wrong with fitch data movies ");
-
-          const data = await res.json();
-
-          if (data.Response === "False") throw new Error("movies not found");
-
-          setMovies(data.Search);
-          setError("");
-        } catch (err) {
-          if (err.name !== "AbortError") {
-            setError(err.message);
-          }
-        } finally {
-          setIsLoading(false);
-        }
-      }
-
-      if (query.length < 3) {
-        setMovies([]);
-        setError("");
-        return;
-      }
-
-      fitchMovies();
-
-      return () => {
-        controller.abort();
-      };
-    },
-    [query]
-  );
-
+  // event handler
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (selectedId === id ? null : id));
   }
 
-  function handleClose() {
+  function handleCloseMovie() {
     setSelectedId(null);
   }
 
@@ -84,6 +38,7 @@ export default function App() {
   function handleDeleteWatched(id) {
     setWatched((watched) => watched.filter((movies) => movies.imdbID !== id));
   }
+
   return (
     <>
       <Navbar>
@@ -105,7 +60,7 @@ export default function App() {
           {selectedId ? (
             <MoviesDetails
               selectedId={selectedId}
-              onClickClose={handleClose}
+              onClickClose={handleCloseMovie}
               onAddWatched={handleAddWatched}
               watched={watched}
             />
